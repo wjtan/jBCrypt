@@ -17,6 +17,8 @@ import java.io.UnsupportedEncodingException;
 
 import java.security.SecureRandom;
 
+import java.util.Arrays;
+
 /**
  * BCrypt implements OpenBSD-style Blowfish password hashing using
  * the scheme described in "A Future-Adaptable Password Scheme" by
@@ -380,7 +382,7 @@ public class BCrypt {
     private static String encode_base64(byte d[], int len)
             throws IllegalArgumentException {
         int off = 0;
-        StringBuffer rs = new StringBuffer();
+        StringBuilder rs = new StringBuilder();
         int c1, c2;
 
         if (len <= 0 || len > d.length) {
@@ -435,7 +437,7 @@ public class BCrypt {
      */
     private static byte[] decode_base64(String s, int maxolen)
             throws IllegalArgumentException {
-        StringBuffer rs = new StringBuffer();
+        StringBuilder rs = new StringBuilder();
         int off = 0, slen = s.length(), olen = 0;
         byte ret[];
         byte c1, c2, c3, c4, o;
@@ -653,12 +655,31 @@ public class BCrypt {
      * @return	the hashed password
      */
     public static String hashpw(String password, String salt) {
+        byte passwordb[];
+
+        try {
+            passwordb = password.getBytes("UTF-8");
+        } catch (UnsupportedEncodingException uee) {
+            throw new AssertionError("UTF-8 is not supported");
+        }
+
+        return hashpw(passwordb, salt);
+    }
+
+    /**
+     * Hash a password using the OpenBSD bcrypt scheme
+     * @param passwordb	the password to hash, as a byte array
+     * @param salt	the salt to hash with (perhaps generated
+     * using BCrypt.gensalt)
+     * @return	the hashed password
+     */
+    public static String hashpw(byte passwordb[], String salt) {
         BCrypt B;
         String real_salt;
-        byte passwordb[], saltb[], hashed[];
+        byte saltb[], hashed[];
         char minor = (char) 0;
         int rounds, off = 0;
-        StringBuffer rs = new StringBuffer();
+        StringBuilder rs = new StringBuilder();
 
         if (salt.charAt(0) != '$' || salt.charAt(1) != '2') {
             throw new IllegalArgumentException("Invalid salt version");
@@ -680,13 +701,11 @@ public class BCrypt {
         rounds = Integer.parseInt(salt.substring(off, off + 2));
 
         real_salt = salt.substring(off + 3, off + 25);
-        try {
-            passwordb = (password + (minor >= 'a' ? "\000" : "")).getBytes("UTF-8");
-        } catch (UnsupportedEncodingException uee) {
-            throw new AssertionError("UTF-8 is not supported");
-        }
 
         saltb = decode_base64(real_salt, BCRYPT_SALT_LEN);
+
+        if (minor >= 'a') // add null terminator
+            passwordb = Arrays.copyOf(passwordb, passwordb.length + 1);
 
         B = new BCrypt();
         hashed = B.crypt_raw(passwordb, saltb, rounds);
@@ -716,7 +735,7 @@ public class BCrypt {
      * @return	an encoded salt value
      */
     public static String gensalt(int log_rounds, SecureRandom random) {
-        StringBuffer rs = new StringBuffer();
+        StringBuilder rs = new StringBuilder();
         byte rnd[] = new byte[BCRYPT_SALT_LEN];
 
         random.nextBytes(rnd);
@@ -762,4 +781,15 @@ public class BCrypt {
     public static boolean checkpw(String plaintext, String hashed) {
         return (hashed.compareTo(hashpw(plaintext, hashed)) == 0);
     }
+
+	/**
+	 * Check that a plaintext byte[] password matches a previously hashed
+	 * one
+	 * @param plaintext	the plaintext password to verify
+	 * @param hashed	the previously-hashed password
+	 * @return	true if the passwords match, false otherwise
+	 */
+	public static boolean checkpw(byte[] plaintext, String hashed) {
+		return (hashed.compareTo(hashpw(plaintext, hashed)) == 0);
+	}
 }
