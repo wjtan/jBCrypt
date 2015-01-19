@@ -97,8 +97,39 @@ public class TestBCrypt extends TestCase {
 
 			// "\xa3"
 			{ (byte) 0xa3, (byte) 0 },
+			// "\xff\xff\xa3"
+			{ (byte) 0xff, (byte) 0xff, (byte) 0xa3, (byte) 0 },
+			// "\xff\xff\xa3"
+			{ (byte) 0xff, (byte) 0xff, (byte) 0xa3, (byte) 0 },
+			// "\xff\xff\xa3"
+			{ (byte) 0xff, (byte) 0xff, (byte) 0xa3, (byte) 0 },
 			// "\xa3"
 			{ (byte) 0xa3, (byte) 0 },
+			// "\xa3"
+			{ (byte) 0xa3, (byte) 0 },
+			// "1\xa3" "345"
+			{ (byte) '1', (byte) 0xa3, (byte) '3', (byte) '4', (byte) '5', (byte) 0 },
+			// "\xff\xa3" "345"
+			{ (byte) 0xff, (byte) 0xa3, (byte) '3', (byte) '4', (byte) '5', (byte) 0 },
+			// "\xff\xa3" "34" "\xff\xff\xff\xa3" "345"
+			{ (byte) 0xff, (byte) 0xa3, (byte) '3', (byte) '4', (byte) 0xff, (byte) 0xff,
+			  (byte) 0xff, (byte) 0xa3, (byte) '3', (byte) '4', (byte) '5', (byte) 0 },
+			// "\xff\xa3" "34" "\xff\xff\xff\xa3" "345"
+			{ (byte) 0xff, (byte) 0xa3, (byte) '3', (byte) '4', (byte) 0xff, (byte) 0xff,
+			  (byte) 0xff, (byte) 0xa3, (byte) '3', (byte) '4', (byte) '5', (byte) 0 },
+			// "\xff\xa3" "34" "\xff\xff\xff\xa3" "345"
+			{ (byte) 0xff, (byte) 0xa3, (byte) '3', (byte) '4', (byte) 0xff, (byte) 0xff,
+			  (byte) 0xff, (byte) 0xa3, (byte) '3', (byte) '4', (byte) '5', (byte) 0 },
+			// "\xff\xa3" "345"
+			{ (byte) 0xff, (byte) 0xa3, (byte) '3', (byte) '4', (byte) '5', (byte) 0 },
+			// "\xff\xa3" "345"
+			{ (byte) 0xff, (byte) 0xa3, (byte) '3', (byte) '4', (byte) '5', (byte) 0 },
+			// "\xa3" "ab"
+			{ (byte) 0xa3, (byte) 'a', (byte) 'b', (byte) 0 },
+			// "\xa3" "ab"
+			{ (byte) 0xa3, (byte) 'a', (byte) 'b', (byte) 0 },
+			// "\xa3" "ab"
+			{ (byte) 0xa3, (byte) 'a', (byte) 'b', (byte) 0 },
 			// "\xd1\x91"
 			{ (byte) 0xd1, (byte) 0x91, (byte) 0 },
 			// "\xd0\xc1\xd2\xcf\xcc\xd8"
@@ -187,8 +218,36 @@ public class TestBCrypt extends TestCase {
 			  "$2a$05$XXXXXXXXXXXXXXXXXXXXXOAcXxm9kjPGEMsLznoKqmqw7tc8WCx4a" },
 			{ // "\xa3"
 			  "$2x$05$/OK.fbVrR/bpIqNJ5ianF.CE5elHaaO4EbggVDjb8P19RukzXSM3e" },
+			{ // "\xff\xff\xa3"
+			  "$2x$05$/OK.fbVrR/bpIqNJ5ianF.CE5elHaaO4EbggVDjb8P19RukzXSM3e" },
+			{ // "\xff\xff\xa3"
+			  "$2y$05$/OK.fbVrR/bpIqNJ5ianF.CE5elHaaO4EbggVDjb8P19RukzXSM3e" },
+			{ // "\xff\xff\xa3"
+			  "$2a$05$/OK.fbVrR/bpIqNJ5ianF.nqd1wy.pTMdcvrRWxyiGL2eMz.2a85." },
+			{ // "\xa3"
+			  "$2y$05$/OK.fbVrR/bpIqNJ5ianF.Sa7shbm4.OzKpvFnX1pQLmQW96oUlCq" },
 			{ // "\xa3"
 			  "$2a$05$/OK.fbVrR/bpIqNJ5ianF.Sa7shbm4.OzKpvFnX1pQLmQW96oUlCq" },
+			{ // "1\xa3" "345"
+			  "$2x$05$/OK.fbVrR/bpIqNJ5ianF.o./n25XVfn6oAPaUvHe.Csk4zRfsYPi" },
+			{ // "\xff\xa3" "345"
+			  "$2x$05$/OK.fbVrR/bpIqNJ5ianF.o./n25XVfn6oAPaUvHe.Csk4zRfsYPi" },
+			{ // "\xff\xa3" "34" "\xff\xff\xff\xa3" "345"
+			  "$2x$05$/OK.fbVrR/bpIqNJ5ianF.o./n25XVfn6oAPaUvHe.Csk4zRfsYPi" },
+			{ // "\xff\xa3" "34" "\xff\xff\xff\xa3" "345"
+			  "$2y$05$/OK.fbVrR/bpIqNJ5ianF.o./n25XVfn6oAPaUvHe.Csk4zRfsYPi" },
+			{ // "\xff\xa3" "34" "\xff\xff\xff\xa3" "345"
+			  "$2a$05$/OK.fbVrR/bpIqNJ5ianF.ZC1JEJ8Z4gPfpe1JOr/oyPXTWl9EFd." },
+			{ // "\xff\xa3" "345"
+			  "$2y$05$/OK.fbVrR/bpIqNJ5ianF.nRht2l/HRhr6zmCp9vYUvvsqynflf9e" },
+			{ // "\xff\xa3" "345"
+			  "$2a$05$/OK.fbVrR/bpIqNJ5ianF.nRht2l/HRhr6zmCp9vYUvvsqynflf9e" },
+			{ // "\xa3" "ab"
+			  "$2a$05$/OK.fbVrR/bpIqNJ5ianF.6IflQkJytoRVc1yuaNtHfiuq.FRlSIS" },
+			{ // "\xa3" "ab"
+			  "$2x$05$/OK.fbVrR/bpIqNJ5ianF.6IflQkJytoRVc1yuaNtHfiuq.FRlSIS" },
+			{ // "\xa3" "ab"
+			  "$2y$05$/OK.fbVrR/bpIqNJ5ianF.6IflQkJytoRVc1yuaNtHfiuq.FRlSIS" },
 			{ // "\xd1\x91"
 			  "$2x$05$6bNw2HLQYeqHYyBfLMsv/OiwqTymGIGzFsA4hOTWebfehXHNprcAS" },
 			{ // "\xd0\xc1\xd2\xcf\xcc\xd8"
@@ -240,6 +299,26 @@ public class TestBCrypt extends TestCase {
 			String hashed = BCrypt.hashpw(plain, salt);
 			assertEquals(hashed, expected);
 			System.out.print(".");
+		}
+		System.out.println("");
+	}
+
+	/**
+	 * Test method for 'BCrypt.gensalt(prefix, int)'
+	 */
+	public void testGensaltPrefix() {
+		String[] valid_prefixes = { "$2a", "$2y" };
+		System.out.print("BCrypt.gensalt(prefix, 5): ");
+		for (String prefix: valid_prefixes) {
+			System.out.print(" " + prefix + ":");
+			for (int i = 0; i < test_vectors.length; i += 4) {
+				String plain = test_vectors[i][0];
+				String salt = BCrypt.gensalt(prefix, 5);
+				String hashed1 = BCrypt.hashpw(plain, salt);
+				String hashed2 = BCrypt.hashpw(plain, hashed1);
+				assertEquals(hashed1, hashed2);
+				System.out.print(".");
+			}
 		}
 		System.out.println("");
 	}
@@ -332,7 +411,7 @@ public class TestBCrypt extends TestCase {
 	public void testCheckpwBinary_failure() {
 		System.out.print("BCrypt.checkpw(byte[]) w/ bad passwords: ");
 		for (int i = 0; i < binary_test_vectors.length; i++) {
-			int broken_index = (i + 4) % binary_test_vectors.length;
+			int broken_index = (i + 7) % binary_test_vectors.length;
 			byte[] plain = binary_test_vectors[i];
 			String expected = binary_test_match_vectors[broken_index][0];
 			assertFalse(BCrypt.checkpw(plain, expected));
