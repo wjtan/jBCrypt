@@ -754,7 +754,7 @@ public class BCrypt {
 			off = 3;
 		else {
 			minor = salt.charAt(2);
-			if ((minor != 'a' && minor != 'x' && minor != 'y')
+			if ((minor != 'a' && minor != 'x' && minor != 'y' && minor != 'b')
 					|| salt.charAt(3) != '$')
 				throw new IllegalArgumentException ("Invalid salt revision");
 			off = 4;
@@ -805,7 +805,8 @@ public class BCrypt {
 		byte rnd[] = new byte[BCRYPT_SALT_LEN];
 
 		if (!prefix.startsWith("$2") ||
-				(prefix.charAt(2) != 'a' && prefix.charAt(2) != 'y')) {
+				(prefix.charAt(2) != 'a' && prefix.charAt(2) != 'y' &&
+				 prefix.charAt(2) != 'b')) {
 			throw new IllegalArgumentException ("Invalid prefix");
 		}
 		if (log_rounds < 4 || log_rounds > 31) {
