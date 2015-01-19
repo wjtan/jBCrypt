@@ -95,6 +95,16 @@ public class TestBCrypt extends TestCase {
 			  (byte) 'U', (byte) '*', (byte) 'U', (byte) '*', (byte) 'U', (byte) 0
 			},
 
+			// "\xa3"
+			{ (byte) 0xa3, (byte) 0 },
+			// "\xa3"
+			{ (byte) 0xa3, (byte) 0 },
+			// "\xd1\x91"
+			{ (byte) 0xd1, (byte) 0x91, (byte) 0 },
+			// "\xd0\xc1\xd2\xcf\xcc\xd8"
+			{ (byte) 0xd0, (byte) 0xc1, (byte) 0xd2, (byte) 0xcf, (byte) 0xcc, (byte) 0xd8,
+			  (byte) 0 },
+
 			// [0xaa] * 72
 			{ (byte) 0xaa, (byte) 0xaa, (byte) 0xaa, (byte) 0xaa, (byte) 0xaa, (byte) 0xaa,
 			  (byte) 0xaa, (byte) 0xaa, (byte) 0xaa, (byte) 0xaa, (byte) 0xaa, (byte) 0xaa,
@@ -175,6 +185,14 @@ public class TestBCrypt extends TestCase {
 			  "$2a$05$CCCCCCCCCCCCCCCCCCCCC.VGOzA784oUp/Z0DY336zx7pLYAy0lwK" },
 			{ // "U*U*U"
 			  "$2a$05$XXXXXXXXXXXXXXXXXXXXXOAcXxm9kjPGEMsLznoKqmqw7tc8WCx4a" },
+			{ // "\xa3"
+			  "$2x$05$/OK.fbVrR/bpIqNJ5ianF.CE5elHaaO4EbggVDjb8P19RukzXSM3e" },
+			{ // "\xa3"
+			  "$2a$05$/OK.fbVrR/bpIqNJ5ianF.Sa7shbm4.OzKpvFnX1pQLmQW96oUlCq" },
+			{ // "\xd1\x91"
+			  "$2x$05$6bNw2HLQYeqHYyBfLMsv/OiwqTymGIGzFsA4hOTWebfehXHNprcAS" },
+			{ // "\xd0\xc1\xd2\xcf\xcc\xd8"
+			  "$2x$05$6bNw2HLQYeqHYyBfLMsv/O9LIGgn8OMzuDoHfof8AQimSGfcSWxnS" },
 			{ // [0xaa] * 72
 			  "$2a$05$/OK.fbVrR/bpIqNJ5ianF.swQOIzjOiJ9GHEPuhEkvqrUyvWhEMx6" },
 			{ // [0xaa] * 72 + "chars after 72 are ignored as usual"
