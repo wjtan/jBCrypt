@@ -17,7 +17,7 @@ import junit.framework.TestCase;
 /**
  * JUnit unit tests for BCrypt routines
  * @author Damien Miller
- * @version 0.2
+ * @version 0.3
  */
 public class TestBCrypt extends TestCase {
 	String test_vectors[][] = {
