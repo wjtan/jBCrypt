@@ -533,6 +533,27 @@ public class BCrypt {
     }
 
     /**
+     * Cycically extract a word of key material, with sign-extension bug
+     * @param data	the string to extract the data from
+     * @param offp	a "pointer" (as a one-entry array) to the
+     * current offset into data
+     * @return	the next word of material from data
+     */
+    private static int streamtoword_bug(byte data[], int offp[]) {
+        int i;
+        int word = 0;
+        int off = offp[0];
+
+        for (i = 0; i < 4; i++) {
+            word = (word << 8) | (int)data[off];
+            off = (off + 1) % data.length;
+        }
+
+        offp[0] = off;
+        return word;
+    }
+
+    /**
      * Initialise the Blowfish key schedule
      */
     private void init_key() {
@@ -543,15 +564,19 @@ public class BCrypt {
     /**
      * Key the Blowfish cipher
      * @param key	an array containing the key
+     * @param sign_ext_bug	true to implement the 2x bug
      */
-    private void key(byte key[]) {
+    private void key(byte key[], boolean sign_ext_bug) {
         int i;
         int koffp[] = {0};
         int lr[] = {0, 0};
         int plen = P.length, slen = S.length;
 
         for (i = 0; i < plen; i++) {
-            P[i] = P[i] ^ streamtoword(key, koffp);
+            if (!sign_ext_bug)
+                P[i] = P[i] ^ streamtoword(key, koffp);
+            else
+                P[i] = P[i] ^ streamtoword_bug(key, koffp);
         }
 
         for (i = 0; i < plen; i += 2) {
@@ -573,15 +598,19 @@ public class BCrypt {
      * http://www.openbsd.org/papers/bcrypt-paper.ps
      * @param data	salt information
      * @param key	password information
+     * @param sign_ext_bug	true to implement the 2x bug
      */
-    private void ekskey(byte data[], byte key[]) {
+    private void ekskey(byte data[], byte key[], boolean sign_ext_bug) {
         int i;
         int koffp[] = {0}, doffp[] = {0};
         int lr[] = {0, 0};
         int plen = P.length, slen = S.length;
 
         for (i = 0; i < plen; i++) {
-            P[i] = P[i] ^ streamtoword(key, koffp);
+            if (!sign_ext_bug)
+                P[i] = P[i] ^ streamtoword(key, koffp);
+            else
+                P[i] = P[i] ^ streamtoword_bug(key, koffp);
         }
 
         for (i = 0; i < plen; i += 2) {
@@ -608,9 +637,10 @@ public class BCrypt {
      * @param salt	the binary salt to hash with the password
      * @param log_rounds	the binary logarithm of the number
      * of rounds of hashing to apply
+     * @param sign_ext_bug	true to implement the 2x bug
      * @return	an array containing the binary hashed password
      */
-    private byte[] crypt_raw(byte password[], byte salt[], int log_rounds) {
+    private byte[] crypt_raw(byte password[], byte salt[], int log_rounds, boolean sign_ext_bug) {
         int rounds, i, j;
         int cdata[] = (int[]) bf_crypt_ciphertext.clone();
         int clen = cdata.length;
@@ -625,10 +655,10 @@ public class BCrypt {
         }
 
         init_key();
-        ekskey(salt, password);
+        ekskey(salt, password, sign_ext_bug);
         for (i = 0; i < rounds; i++) {
-            key(password);
-            key(salt);
+            key(password, sign_ext_bug);
+            key(salt, false);
         }
 
         for (i = 0; i < 64; i++) {
@@ -688,7 +718,8 @@ public class BCrypt {
             off = 3;
         } else {
             minor = salt.charAt(2);
-            if (minor != 'a' || salt.charAt(3) != '$') {
+            if ((minor != 'a' && minor != 'x')
+                    || salt.charAt(3) != '$') {
                 throw new IllegalArgumentException("Invalid salt revision");
             }
             off = 4;
@@ -708,7 +739,7 @@ public class BCrypt {
             passwordb = Arrays.copyOf(passwordb, passwordb.length + 1);
 
         B = new BCrypt();
-        hashed = B.crypt_raw(passwordb, saltb, rounds);
+        hashed = B.crypt_raw(passwordb, saltb, rounds, minor == 'x');
 
         rs.append("$2");
         if (minor >= 'a') {
