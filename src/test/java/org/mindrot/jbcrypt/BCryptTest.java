@@ -106,6 +106,10 @@ public class BCryptTest {
             { (byte) 0xff, (byte) 0xff, (byte) 0xa3 },
             // "\xff\xff\xa3"
             { (byte) 0xff, (byte) 0xff, (byte) 0xa3 },
+            // "\xff\xff\xa3"
+            { (byte) 0xff, (byte) 0xff, (byte) 0xa3 },
+            // "\xa3"
+            { (byte) 0xa3 },
             // "\xa3"
             { (byte) 0xa3 },
             // "\xa3"
@@ -227,10 +231,14 @@ public class BCryptTest {
               "$2y$05$/OK.fbVrR/bpIqNJ5ianF.CE5elHaaO4EbggVDjb8P19RukzXSM3e" },
             { // "\xff\xff\xa3"
               "$2a$05$/OK.fbVrR/bpIqNJ5ianF.nqd1wy.pTMdcvrRWxyiGL2eMz.2a85." },
+            { // "\xff\xff\xa3"
+              "$2b$05$/OK.fbVrR/bpIqNJ5ianF.CE5elHaaO4EbggVDjb8P19RukzXSM3e" },
             { // "\xa3"
               "$2y$05$/OK.fbVrR/bpIqNJ5ianF.Sa7shbm4.OzKpvFnX1pQLmQW96oUlCq" },
             { // "\xa3"
               "$2a$05$/OK.fbVrR/bpIqNJ5ianF.Sa7shbm4.OzKpvFnX1pQLmQW96oUlCq" },
+            { // "\xa3"
+              "$2b$05$/OK.fbVrR/bpIqNJ5ianF.Sa7shbm4.OzKpvFnX1pQLmQW96oUlCq" },
             { // "1\xa3" "345"
               "$2x$05$/OK.fbVrR/bpIqNJ5ianF.o./n25XVfn6oAPaUvHe.Csk4zRfsYPi" },
             { // "\xff\xa3" "345"
@@ -307,7 +315,7 @@ public class BCryptTest {
      * Test method for 'BCrypt.gensalt(prefix, int)'
      */
     public void testGensaltPrefix() {
-        String[] valid_prefixes = { "$2a", "$2y" };
+        String[] valid_prefixes = { "$2a", "$2y", "$2b" };
         System.out.print("BCrypt.gensalt(prefix, 5): ");
         for (String prefix: valid_prefixes) {
             System.out.print(" " + prefix + ":");
@@ -417,7 +425,7 @@ public class BCryptTest {
     public void testCheckpwBinary_failure() {
         System.out.print("BCrypt.checkpw(byte[]) w/ bad passwords: ");
         for (int i = 0; i < binary_test_vectors.length; i++) {
-            int broken_index = (i + 7) % binary_test_vectors.length;
+            int broken_index = (i + 8) % binary_test_vectors.length;
             byte[] plain = binary_test_vectors[i];
             String expected = binary_test_match_vectors[broken_index][0];
             assertFalse(BCrypt.checkpw(plain, expected));
