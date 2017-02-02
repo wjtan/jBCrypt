@@ -57,10 +57,10 @@ import java.util.Arrays;
  * <p>
  * The amount of work increases exponentially (2**log_rounds), so
  * each increment is twice as much work. The default log_rounds is
- * 10, and the valid range is 4 to 31.
+ * 10, and the valid range is 4 to 30.
  *
  * @author Damien Miller
- * @version 0.3m
+ * @version 0.4
  */
 public class BCrypt {
     // BCrypt parameters
@@ -335,7 +335,9 @@ public class BCrypt {
         0x90d4f869, 0xa65cdea0, 0x3f09252d, 0xc208e69f,
         0xb74e6132, 0xce77e25b, 0x578fdfe3, 0x3ac372e6
     };
-    // bcrypt IV: "OrpheanBeholderScryDoubt"
+    // bcrypt IV: "OrpheanBeholderScryDoubt". The C implementation calls
+    // this "ciphertext", but it is really plaintext or an IV. We keep
+    // the name to make code comparison easier.
     static private final int bf_crypt_ciphertext[] = {
         0x4f727068, 0x65616e42, 0x65686f6c,
         0x64657253, 0x63727944, 0x6f756274
@@ -681,16 +683,16 @@ public class BCrypt {
      * of rounds of hashing to apply
      * @param sign_ext_bug	true to implement the 2x bug
      * @param safety		bit 16 is set when the safety measure is requested
+     * @param cdata         the plaintext to encrypt
      * @return	an array containing the binary hashed password
      */
     private byte[] crypt_raw(byte password[], byte salt[], int log_rounds,
-            boolean sign_ext_bug, int safety) {
+            boolean sign_ext_bug, int safety, int cdata[]) {
         int rounds, i, j;
-        int cdata[] = (int[]) bf_crypt_ciphertext.clone();
         int clen = cdata.length;
         byte ret[];
 
-        if (log_rounds < 4 || log_rounds > 31) {
+        if (log_rounds < 4 || log_rounds > 30) {
             throw new IllegalArgumentException("Bad number of rounds");
         }
         rounds = 1 << log_rounds;
@@ -700,7 +702,7 @@ public class BCrypt {
 
         init_key();
         ekskey(salt, password, sign_ext_bug, safety);
-        for (i = 0; i < rounds; i++) {
+        for (i = 0; i != rounds; i++) {
             key(password, sign_ext_bug);
             key(salt, false);
         }
@@ -722,6 +724,23 @@ public class BCrypt {
     }
 
     /**
+     * Converts given plaintext to byte representation.
+     * @param plaintext		the plaintext password to convert
+     * @return Byte representation of given plaintext.
+     */
+    private static byte[] stringToBytes(String plaintext) {
+        byte plaintextb[];
+
+        try {
+            plaintextb = plaintext.getBytes("UTF-8");
+        } catch (UnsupportedEncodingException uee) {
+            throw new AssertionError("UTF-8 is not supported");
+        }
+
+        return plaintextb;
+    }
+
+    /**
      * Hash a password using the OpenBSD bcrypt scheme
      * @param password	the password to hash
      * @param salt	the salt to hash with (perhaps generated
@@ -729,13 +748,7 @@ public class BCrypt {
      * @return	the hashed password
      */
     public static String hashpw(String password, String salt) {
-        byte passwordb[];
-
-        try {
-            passwordb = password.getBytes("UTF-8");
-        } catch (UnsupportedEncodingException uee) {
-            throw new AssertionError("UTF-8 is not supported");
-        }
+        byte passwordb[] = stringToBytes(password);
 
         return hashpw(passwordb, salt);
     }
@@ -785,7 +798,8 @@ public class BCrypt {
         B = new BCrypt();
         hashed = B.crypt_raw(passwordb, saltb, rounds,
                 minor == 'x',  // true for sign extension bug ('2x')
-                minor == 'a' ? 0x10000 : 0); // safety factor for '2a'
+                minor == 'a' ? 0x10000 : 0, // safety factor for '2a'
+                (int[])bf_crypt_ciphertext.clone());
 
         rs.append("$2");
         if (minor >= 'a') {
@@ -794,6 +808,10 @@ public class BCrypt {
         rs.append("$");
         if (rounds < 10) {
             rs.append("0");
+        }
+        if (rounds > 30) {
+            throw new IllegalArgumentException(
+                    "rounds exceeds maximum (30)");
         }
         rs.append(Integer.toString(rounds));
         rs.append("$");
@@ -834,6 +852,10 @@ public class BCrypt {
         rs.append("$");
         if (log_rounds < 10) {
             rs.append("0");
+        }
+        if (log_rounds > 30) {
+            throw new IllegalArgumentException(
+                    "log_rounds exceeds maximum (30)");
         }
         rs.append(Integer.toString(log_rounds));
         rs.append("$");
@@ -902,17 +924,32 @@ public class BCrypt {
      * @return	true if the passwords match, false otherwise
      */
     public static boolean checkpw(String plaintext, String hashed) {
-        return (hashed.compareTo(hashpw(plaintext, hashed)) == 0);
+        byte plaintextb[] = stringToBytes(plaintext);
+        return checkpw(plaintextb, hashed);
     }
 
-	/**
-	 * Check that a plaintext byte[] password matches a previously hashed
-	 * one
-	 * @param plaintext	the plaintext password to verify
-	 * @param hashed	the previously-hashed password
-	 * @return	true if the passwords match, false otherwise
-	 */
-	public static boolean checkpw(byte[] plaintext, String hashed) {
-		return (hashed.compareTo(hashpw(plaintext, hashed)) == 0);
-	}
+    /**
+     * Check that a plaintext byte[] password matches a previously hashed
+     * one
+     * @param plaintext	the plaintext password to verify
+     * @param hashed	the previously-hashed password
+     * @return	true if the passwords match, false otherwise
+     */
+    public static boolean checkpw(byte[] plaintext, String hashed) {
+        byte hashed_bytes[];
+        byte try_bytes[];
+        try {
+            String try_pw = hashpw(plaintext, hashed);
+            hashed_bytes = hashed.getBytes("UTF-8");
+            try_bytes = try_pw.getBytes("UTF-8");
+        } catch (UnsupportedEncodingException uee) {
+            return false;
+        }
+        if (hashed_bytes.length != try_bytes.length)
+            return false;
+        byte ret = 0;
+        for (int i = 0; i < try_bytes.length; i++)
+            ret |= hashed_bytes[i] ^ try_bytes[i];
+        return ret == 0;
+    }
 }

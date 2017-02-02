@@ -20,7 +20,7 @@ import static org.junit.Assert.*;
 /**
  * JUnit unit tests for BCrypt routines
  * @author Damien Miller
- * @version 0.3m
+ * @version 0.4
  */
 public class BCryptTest {
 
